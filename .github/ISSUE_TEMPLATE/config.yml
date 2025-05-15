@@ -1,0 +1,7 @@
+contact_links:
+  - name: Discord Chat
+    url: https://discord.nitronvim.com
+    about: Ask questions and have discussions about NitroNvim on Discord
+  - name: r/NitroNvim (Reddit)
+    url: https://www.reddit.com/r/NitroNvim
+    about: Ask questions about NitroNvim on the official Subreddit
