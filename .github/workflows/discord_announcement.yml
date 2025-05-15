@@ -1,0 +1,50 @@
+name: Announce releases on the NitroNvim Discord
+
+on:
+  workflow_call:
+    secrets:
+      DISCORD_WEBHOOK_URL:
+        description: 'The webhook URL to push to'
+        required: true
+    inputs:
+      plugin_name:
+        description: 'Name of the Neovim plugin'
+        default: ${{ github.event.repository.name }}
+        required: false
+        type: string
+
+jobs:
+  github-releases-to-discord:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Fetch changelog
+        id: changelog
+        run: |
+          max_chars=2000
+          header=$(echo '# ${{ inputs.plugin_name }} Release')
+          changelog=$(awk '/^## \[/{if (p) exit; p=1} p' CHANGELOG.md)
+          full_message="${header}"$'\n'"${changelog}"
+          message=$(echo "${full_message}" | fold -s -w "${max_chars}" | head -c "${max_chars}")
+          if [[ ${#full_message} -gt $max_chars ]]; then
+            message=$(echo "${message}" | head -n -1)
+            message="${message}"$'\n'"..."
+          fi
+          echo 'DISCORD_MESSAGE<<EOF' >> $GITHUB_OUTPUT
+          echo -e "${message}" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
+      - name: Send changelog to Discord
+        uses: Ilshidur/action-discord@0.3.2
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_USERNAME: 'NitroNvim Releases'
+          DISCORD_AVATAR: 'https://avatars.githubusercontent.com/u/141652974?v=4'
+          DISCORD_EMBEDS: '[{
+            "title": "${{ inputs.plugin_name }} Release on GitHub",
+            "url": "${{ github.event.release.html_url }}",
+            "color": 5285097,
+            "timestamp": "${{ github.event.release.created_at }}"
+            }]'
+        with:
+          args: '${{ steps.changelog.outputs.DISCORD_MESSAGE }}'
