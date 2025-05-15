@@ -1,0 +1,5 @@
+{
+  "name": "NitroNvim Stale Issue & PR Checking",
+  "description": "Add Stale bot as configured and managed by the NitroNvim organization",
+  "iconName": "octicon clock"
+}
